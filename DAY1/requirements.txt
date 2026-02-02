@@ -16,3 +16,5 @@ requests
 bs4
 matplotlib
 streamlit
+langgraph
+duckduckgo-search
