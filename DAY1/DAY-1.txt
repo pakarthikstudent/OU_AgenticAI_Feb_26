@@ -1,0 +1,253 @@
+
+	Good Morning All
+	
+	Welcome to Agentic AI Engineering: Concepts to Deployment Training
+		   =============================================
+	This is Palani Karthikeyan (Call: Karthik) - Trainer
+		===============================================
+	
+-----------------------------------------------------------------------------------
+
+AI - Field of CS
+---
+ |----> Software - think, learn, make decision and solve problem
+
+Types of AI
+------------------
+1. Narrow AI - Weak AI
+ 
+2. General AI - Strong AI
+
+token - word
+
+I am learning ai
+....
+....
+--------------------//Corpus 
+|
+I am learning ai //sentence
+----------------
+|
+[ I , am ,learning, ai ] //word - token
+|
+stemm 
+- lemma  -- reduce root word (ex: learning - learn)
+|
+stopwords 
+|
+vector --> [101010] 
+|
+word2vector - similarity 
+hello hi ....
+
+
+OneHotEncoding
+
+food good bad
+
+w=3
+food ->  1 0 0
+good ->  0 1 0
+bad  ->  0 0 1
+        -------
+
+
+DL
+ |-->ANN - tabular data
+ |-->CNN - images
+ |-->RNN(Recurrent Neural Network)  -->sequential data
+ ..
+ |-->Transformer
+	|->Attention
+ this is ...
+ ....
+ word - token
+ Query
+ Key 
+ Value 
+---------//vectors
+
+Step 1: Q,K,V - each embedding token
+
+Q = X.Wq
+K = X.Wk
+V = X.Wv
+
+cat | 1|0|0|
+ Q   ------------------------>
+ K  
+ V
+Wq = Wk = Wv = I
+
+embedding_obj.embed_query("food") -->[1.34,0.45,-3.4]  ---> 
+embedding_obj.embed_query("dosa") -->[1.32,0.42,-3.5]  -------> 0.98 -- 
+embedding_obj.embed_query("laptop") -->[5.94,0.82,-7.1] ------> 0.67
+
+
+End User:  Get list of sales records //Plain Text  ---->----> select *from <table> where ....
+	  ---------------------------------------		===========================//SQL
+									|
+						----<------------------
+						Generate New Content(Result+UserQuery)
+	   List of sales records 
+	+----------------------------
+		//PlainText -English
+	+----------------------------+
+
+Large Language Model
+
+Gen AI - Sub set of DL  - LLM
+ |->Generate new data(Text,Image,Audio,Video,....)
+
+Vs 
+
+Agentic AI
+-----------
+|-->Act as autonomously to achieve goal 
+	
+Agent
+ |->Understand  the Goal
+ |->Plan 
+ |->Decide 
+ |->use tools(APIs,DBs,...)
+ |->Result
+ |->Retry
+ Agentic AI = GenAI + Planning + tools + Memory + Control loop
+--------------------------------------------------------------
+#####################################################################################################
+
+Hands on
+-----------
+python - 3.10 updated version 
+ 
+Framework 
+-----------
+Langchain - RAG - GenAI Appln 
+=========
+  -> -> -> -> -> 
+  Load data ->Chunk ->Embedding ->VectorDB
+
+Chain -> pipeline -> p1|p2|p3|p4|p5
+
+LangGraph  - we can do forward and backward direction + loop 
+====_____
+    G=(V,E)
+
+ (node1)<------------>(node2)
+    |			| 
+ (node3)----------------
+
+Phidata 
+autogen
+Langflow --- no code tool
+flowise  --- no code tool
+n8n --- no code tool
+
+----------
+
+pip install -r requirements.txt 
+
+
+py -3.9 --version 
+(or)
+python3.9 --version
+-------------------
+Local system
+---------------
+https://www.anaconda.com/download
+|
+|
+Click windows key ->type anaconda ->Anaconda Navigator launch -> Select jupyter ->Launch 
+
+
+https://www.python.org
+-----------------------
+  [download]
+    |
+    |-->python 3.X
+	======
+	  |-> General purpose python programming - OK
+		pip install numpy
+		pip install pandas 
+		pip install matplotlib
+		pip install sklearn
+		...
+Usecase
+  DataAnalytics 
+  Machine Learning
+  Deep Learning
+  NLP
+  ------- // Go to https://www.anaconda.com/download = (Python + DataAnalytics + ML + DL libs are avaiable )
+
+############################################################################
+
+C:\Users\karth>ollama list
+NAME                       ID              SIZE      MODIFIED
+gemma2:2b                  8ccf136fdd52    1.6 GB    5 days ago
+nomic-embed-text:latest    0a109f422b47    274 MB    5 days ago
+
+C:\Users\karth># ollama pull gemma2:2b - download the model # ollama run gemma2:2b
+
+################################
+To Access external model (openAI,Groq,Huggingface ..)
+
+1. Sigin - External model provider webpage 
+2. Get the access token - copy the token and paste it into notepad  --->--(A)
+|
+3. Go to terminal ->  create a new file .env <-- prefix .
+
+   Ex: Linux/macos -->   vi .env {Enter}
+			press i 
+			KEY=<paste-your-apiToken> --<--(A)
+			 :wq {Enter}
+
+   Ex: Windows -----> Gitbash --> vi .env 
+				  KEY=<paste-your-apiToken>
+				  :wq
+	
+C:\users\karthik> .env   --- p1.py 
+
+		
+E:\>
+ |--->Myproject\
+	   |----------> .env ----- p1.py
+		        =====
+4. open IDE(vscode,pycharm,jupyter....)
+5. import lanchain..... # development activity
+
+6. How to initialize API Token to local code => import os
+						from dotenv import load_dotenv
+						load_env() ->True 
+------------------------------------------------------------------------------------------------------
+GROQ_API_KEY
+
+GROQ_API_KEY="gsk_...l"
+------------|--------------------------------------------------------------
+	 There is no space = LHS,RHS
+
+===============================================================================
+
+sudo dnf install patch -y
+
+===============================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
