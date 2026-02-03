@@ -1,0 +1,45 @@
+Prompt
+|
+RAG+Prompt
+|
+|
+Langgraph - Single Agent
+|
+Conditional style - Agent
+|
+Multi Agent
+
+#####################################################################################
+
+Recap
+-----
+|->Langchain - frame work 
+   =========
+	|-> RAG(Retrieval Augmented Generation) 
+ 
+	|-> Chain - P1|P2|P3 - LCE
+		
+	     P1|P2|P3 ->result
+
+	|-> Prompt  |->agent  
+	
+-----------------------------------
+Prompt 
+------
+ |->Text - instruction to llm - response to user query
+
+ |-> Text(user defined string) + jinj2 template {placeholder}
+				 ============================ //dynamic results
+
+ PromptTemplate
+ ChatPromptTemplate - QA - structred prompt
+
+prompt|llmobj 
+
+#############################################################################
+
+
+
+
+
+		
