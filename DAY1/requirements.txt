@@ -18,3 +18,4 @@ matplotlib
 streamlit
 langgraph
 duckduckgo-search
+langchain-classic
