@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ReAct LangGraph + Groq — Architecture Diagram</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+
+  /* ── Page Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .header h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #02c39a, #6366f1, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .header p {
+    color: #64748b;
+    margin-top: 6px;
+    font-size: 0.95rem;
+  }
+
+  /* ── Main Layout ── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  /* ── Section Title ── */
+  .section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #6366f1;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  /* ─────────────────────────────────
+       FLOW DIAGRAM
+     ───────────────────────────────── */
+  .flow-wrap {
+    background: #161923;
+    border: 1px solid #252a3a;
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* Each box */
+  .node {
+    width: 260px;
+    border-radius: 12px;
+    padding: 18px 22px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .node .emoji { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+  .node .label { font-weight: 700; font-size: 1rem; }
+  .node .desc  { font-size: 0.82rem; color: #94a3b8; margin-top: 3px; }
+
+  /* Color variants */
+  .node-start  { background: #1e293b; border: 2px solid #475569; }
+  .node-start .label { color: #cbd5e1; }
+
+  .node-groq   { background: #1a1f35; border: 2px solid #6366f1; box-shadow: 0 0 18px rgba(99,102,241,.25); }
+  .node-groq .label { color: #a5b4fc; }
+
+  .node-thought { background: #1b2838; border: 2px solid #02c39a; box-shadow: 0 0 14px rgba(2,195,154,.2); }
+  .node-thought .label { color: #5eead4; }
+
+  .node-action  { background: #2a1f1f; border: 2px solid #f472b6; box-shadow: 0 0 14px rgba(244,114,182,.2); }
+  .node-action .label { color: #f9a8d4; }
+
+  .node-tools   { background: #1f2a1f; border: 2px solid #4ade80; box-shadow: 0 0 14px rgba(74,222,128,.2); }
+  .node-tools .label { color: #86efac; }
+
+  .node-obs     { background: #2a2518; border: 2px solid #fbbf24; box-shadow: 0 0 14px rgba(251,191,36,.2); }
+  .node-obs .label { color: #fde68a; }
+
+  .node-end     { background: #1e293b; border: 2px dashed #475569; }
+  .node-end .label { color: #cbd5e1; }
+
+  /* Arrows between nodes */
+  .arrow {
+    width: 2px;
+    height: 28px;
+    background: #475569;
+    position: relative;
+  }
+  .arrow::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 9px solid #475569;
+  }
+  .arrow .arrow-label {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.72rem;
+    color: #6366f1;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  /* Loop-back arrow (right side) */
+  .loop-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+  }
+  .loop-row .node { z-index: 1; }
+
+  .loop-back {
+    position: absolute;
+    right: calc(50% - 170px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 90px;
+    height: 130px;
+    border: 2px solid #6366f1;
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+  }
+  .loop-back-label {
+    position: absolute;
+    right: calc(50% - 175px);
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    font-size: 0.68rem;
+    color: #6366f1;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ─────────────────────────────────
+       TOOLS CARD ROW
+     ───────────────────────────────── */
+  .tools-row {
+    display: flex;
+    gap: 16px;
+  }
+  .tool-card {
+    flex: 1;
+    background: #161923;
+    border: 1px solid #252a3a;
+    border-radius: 14px;
+    padding: 22px 20px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .tool-card:hover {
+    border-color: #4ade80;
+    box-shadow: 0 0 16px rgba(74,222,128,.15);
+  }
+  .tool-card .tc-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .tool-card .tc-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .tc-badge.search { background: #1b2838; color: #5eead4; border: 1px solid #02c39a; }
+  .tc-badge.python { background: #2a2518; color: #fde68a; border: 1px solid #fbbf24; }
+
+  .tool-card .tc-fn {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.82rem;
+    color: #a78bfa;
+    margin-bottom: 8px;
+  }
+  .tool-card .tc-desc { font-size: 0.82rem; color: #94a3b8; line-height: 1.5; }
+  .tool-card .tc-ex {
+    margin-top: 12px;
+    background: #0f1117;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.76rem;
+    color: #cbd5e1;
+    line-height: 1.7;
+  }
+  .tc-ex .dim { color: #475569; }
+  .tc-ex .grn { color: #4ade80; }
+  .tc-ex .ylw { color: #fbbf24; }
+  .tc-ex .pur { color: #a78bfa; }
+
+  /* ─────────────────────────────────
+       LIVE TRACE EXAMPLE
+     ───────────────────────────────── */
+  .trace-wrap {
+    background: #161923;
+    border: 1px solid #252a3a;
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+  }
+  .trace-question {
+    background: #1e293b;
+    border-left: 3px solid #6366f1;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 22px;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+  }
+  .trace-question span { color: #a5b4fc; font-weight: 600; }
+
+  .trace-step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+  .trace-step .badge {
+    min-width: 82px;
+    text-align: center;
+    padding: 4px 0;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    flex-shrink: 0;
+  }
+  .badge.thought   { background: #1b2838; color: #5eead4; border: 1px solid #02c39a; }
+  .badge.action    { background: #2a1f1f; color: #f9a8d4; border: 1px solid #f472b6; }
+  .badge.obs       { background: #2a2518; color: #fde68a; border: 1px solid #fbbf24; }
+  .badge.answer    { background: #1a2040; color: #a5b4fc; border: 1px solid #6366f1; }
+
+  .trace-step .text {
+    font-size: 0.83rem;
+    color: #cbd5e1;
+    line-height: 1.55;
+    padding-top: 4px;
+  }
+  .trace-step .text .mono {
+    font-family: 'Consolas', monospace;
+    background: #0f1117;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: #a78bfa;
+  }
+
+  /* ─────────────────────────────────
+       INSTALL BLOCK
+     ───────────────────────────────── */
+  .install-wrap {
+    background: #161923;
+    border: 1px solid #252a3a;
+    border-radius: 16px;
+    padding: 24px 28px;
+  }
+  .install-wrap pre {
+    background: #0f1117;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    line-height: 1.9;
+    overflow-x: auto;
+  }
+  .install-wrap pre .cmd  { color: #4ade80; }
+  .install-wrap pre .arg  { color: #fde68a; }
+  .install-wrap pre .dim  { color: #475569; }
+
+  /* ─────────────────────────────────
+       RESPONSIVE
+     ───────────────────────────────── */
+  @media (max-width: 640px) {
+    .tools-row { flex-direction: column; }
+    .loop-back, .loop-back-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <h1>ReAct Architecture — LangGraph + Groq</h1>
+  <p>Visual breakdown of the agent flow, tools, and a live trace example</p>
+</div>
+
+<div class="container">
+
+  <!-- ════════════════════════════════════════
+         SECTION 1 — GRAPH FLOW
+       ════════════════════════════════════════ -->
+  <div>
+    <div class="section-title">① LangGraph Flow</div>
+    <div class="flow-wrap">
+      <div class="flow">
+
+        <!-- START -->
+        <div class="node node-start">
+          <span class="emoji">🚀</span>
+          <div class="label">START</div>
+          <div class="desc">User question enters the graph</div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- GROQ LLM -->
+        <div class="node node-groq">
+          <span class="emoji">🧠</span>
+          <div class="label">Agent Node — Groq LLM</div>
+          <div class="desc">llama3-groq-70b · Generates Thought + Action</div>
+        </div>
+        <div class="arrow"><span class="arrow-label">tool_calls?</span></div>
+
+        <!-- THOUGHT -->
+        <div class="node node-thought">
+          <span class="emoji">💭</span>
+          <div class="label">Thought</div>
+          <div class="desc">"I need to search for…"</div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- ACTION -->
+        <div class="node node-action">
+          <span class="emoji">⚡</span>
+          <div class="label">Action</div>
+          <div class="desc">web_search( … )  or  python_repl( … )</div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- TOOLS -->
+        <div class="loop-row">
+          <div class="node node-tools">
+            <span class="emoji">⚙️</span>
+            <div class="label">Tool Node — Executor</div>
+            <div class="desc">Runs the tool · returns ToolMessage</div>
+          </div>
+          <!-- visual loop-back line -->
+          <div class="loop-back"></div>
+          <div class="loop-back-label">loops back to Agent</div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- OBSERVATION -->
+        <div class="node node-obs">
+          <span class="emoji">👁️</span>
+          <div class="label">Observation</div>
+          <div class="desc">Result fed back into message history</div>
+        </div>
+        <div class="arrow"><span class="arrow-label">done?</span></div>
+
+        <!-- END -->
+        <div class="node node-end">
+          <span class="emoji">✅</span>
+          <div class="label">END — Final Answer</div>
+          <div class="desc">Response returned to the user</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+         SECTION 2 — TOOLS
+       ════════════════════════════════════════ -->
+  <div>
+    <div class="section-title">② Available Tools</div>
+    <div class="tools-row">
+
+      <!-- web_search -->
+      <div class="tool-card">
+        <div class="tc-head">
+          <span class="tc-badge search">Search</span>
+        </div>
+        <div class="tc-fn">web_search(query: str) → str</div>
+        <div class="tc-desc">Queries DuckDuckGo's Instant Answer API. Best for factual, real-world, or current-event questions.</div>
+        <div class="tc-ex">
+          <span class="dim"># Example call</span><br>
+          <span class="grn">web_search</span>(<span class="ylw">"population of Tokyo 2024"</span>)<br>
+          <span class="dim"># → "Tokyo's population is ~13.96 million…"</span>
+        </div>
+      </div>
+
+      <!-- python_repl -->
+      <div class="tool-card">
+        <div class="tc-head">
+          <span class="tc-badge python">Python</span>
+        </div>
+        <div class="tc-fn">python_repl(code: str) → str</div>
+        <div class="tc-desc">Executes Python in a sandboxed environment. Use for math, data transforms, or any computation.</div>
+        <div class="tc-ex">
+          <span class="dim"># Example call</span><br>
+          <span class="grn">python_repl</span>(<span class="ylw">"import math\nprint(4 * math.pi * 6371**2)"</span>)<br>
+          <span class="dim"># → "510064471.9 km²"</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+         SECTION 3 — LIVE TRACE
+       ════════════════════════════════════════ -->
+  <div>
+    <div class="section-title">③ Live ReAct Trace Example</div>
+    <div class="trace-wrap">
+      <div class="trace-question">
+        <span>Question:</span> Search for the radius of Earth in km, then calculate its surface area using 4πr².
+      </div>
+
+      <!-- Step 1 -->
+      <div class="trace-step">
+        <div class="badge thought">Thought</div>
+        <div class="text">I need the radius of Earth first. Let me search for it.</div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="trace-step">
+        <div class="badge action">Action</div>
+        <div class="text"><span class="mono">web_search("radius of Earth in kilometers")</span></div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="trace-step">
+        <div class="badge obs">Observation</div>
+        <div class="text">The mean radius of the Earth is approximately <strong>6,371 km</strong>.</div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="trace-step">
+        <div class="badge thought">Thought</div>
+        <div class="text">I have the radius (6371 km). Now I can calculate the surface area using <span class="mono">4 × π × r²</span>.</div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="trace-step">
+        <div class="badge action">Action</div>
+        <div class="text"><span class="mono">python_repl("import math\nprint(4 * math.pi * 6371**2)")</span></div>
+      </div>
+
+      <!-- Step 6 -->
+      <div class="trace-step">
+        <div class="badge obs">Observation</div>
+        <div class="text"><strong>510,064,471.9</strong> (km²)</div>
+      </div>
+
+      <!-- Step 7 -->
+      <div class="trace-step">
+        <div class="badge thought">Thought</div>
+        <div class="text">I now have both pieces of information. I can give the final answer.</div>
+      </div>
+
+      <!-- Final -->
+      <div class="trace-step">
+        <div class="badge answer">Answer</div>
+        <div class="text">The radius of Earth is <strong>6,371 km</strong>. Its surface area is approximately <strong>510,064,472 km²</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+         SECTION 4 — INSTALL & RUN
+       ════════════════════════════════════════ -->
+  <div>
+    <div class="section-title">④ Setup & Run</div>
+    <div class="install-wrap">
+      <pre>
+<span class="dim"># 1. Install dependencies</span>
+<span class="cmd">pip install</span> <span class="arg">langchain-groq langgraph langchain-core requests</span>
+
+<span class="dim"># 2. Set your Groq API key</span>
+<span class="cmd">export</span> <span class="arg">GROQ_API_KEY="gsk_your_key_here"</span>
+
+<span class="dim"># 3. Run the agent</span>
+<span class="cmd">python</span> <span class="arg">react_langgraph_groq.py</span>
+      </pre>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+</body>
+</html>
