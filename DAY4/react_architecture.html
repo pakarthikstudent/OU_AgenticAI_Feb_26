@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReAct Architecture: LLM, Agent, Tools & Actions</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 18px;
+        }
+        
+        /* Architecture Diagram */
+        .architecture {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+            align-items: start;
+        }
+        
+        .component {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 3px solid;
+            position: relative;
+        }
+        
+        .user-component {
+            border-color: #48bb78;
+            background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+        }
+        
+        .agent-component {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #e9d5ff 0%, #c4b5fd 100%);
+            min-height: 400px;
+        }
+        
+        .tools-component {
+            border-color: #f56565;
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+        }
+        
+        .component-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .component-icon {
+            font-size: 32px;
+        }
+        
+        .component-description {
+            color: #2d3748;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .sub-component {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+        
+        .llm-box {
+            border-color: #9f7aea;
+        }
+        
+        .memory-box {
+            border-color: #805ad5;
+        }
+        
+        .reasoning-box {
+            border-color: #6b46c1;
+        }
+        
+        .sub-component-title {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .sub-component-text {
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* Tools List */
+        .tool-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid #f56565;
+            font-size: 14px;
+        }
+        
+        .tool-name {
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .tool-desc {
+            color: #718096;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        
+        /* Flow Arrows */
+        .flow-section {
+            margin: 50px 0;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 12px;
+        }
+        
+        .flow-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .flow-box {
+            flex: 1;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .user-box {
+            background: #c6f6d5;
+            border: 2px solid #48bb78;
+            color: #22543d;
+        }
+        
+        .agent-box {
+            background: #e9d5ff;
+            border: 2px solid #667eea;
+            color: #42389d;
+        }
+        
+        .llm-box-flow {
+            background: #d6bcfa;
+            border: 2px solid #9f7aea;
+            color: #44337a;
+        }
+        
+        .tool-box {
+            background: #fed7d7;
+            border: 2px solid #f56565;
+            color: #742a2a;
+        }
+        
+        .arrow-horizontal {
+            font-size: 32px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .arrow-vertical {
+            text-align: center;
+            font-size: 32px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .flow-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+        
+        /* Interaction Sequence */
+        .sequence {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .sequence-step {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-actor {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .step-action {
+            color: #2d3748;
+            line-height: 1.5;
+        }
+        
+        /* Roles Table */
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .role-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-top: 5px solid;
+        }
+        
+        .role-card.user-role { border-color: #48bb78; }
+        .role-card.agent-role { border-color: #667eea; }
+        .role-card.llm-role { border-color: #9f7aea; }
+        .role-card.tool-role { border-color: #f56565; }
+        
+        .role-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .role-responsibilities {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .role-responsibilities li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+        
+        .role-responsibilities li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 1024px) {
+            .architecture {
+                grid-template-columns: 1fr;
+            }
+            
+            .flow-row {
+                flex-direction: column;
+            }
+            
+            .arrow-horizontal {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ ReAct Architecture</h1>
+        <p class="subtitle">Understanding LLM, Agent, Tools & Their Relationships</p>
+        
+        <!-- Main Architecture -->
+        <div class="architecture">
+            <!-- User -->
+            <div class="component user-component">
+                <div class="component-title">
+                    <span class="component-icon">👤</span>
+                    User
+                </div>
+                <div class="component-description">
+                    Provides the initial task/query and receives the final result.
+                </div>
+                <div class="sub-component" style="border-color: #48bb78;">
+                    <div class="sub-component-title">🎯 Query</div>
+                    <div class="sub-component-text">
+                        "Find me hotels in Paris under $200/night with good reviews"
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Agent (Central) -->
+            <div class="component agent-component">
+                <div class="component-title">
+                    <span class="component-icon">🤖</span>
+                    Agent (Orchestrator)
+                </div>
+                <div class="component-description">
+                    The brain of the system. Coordinates LLM and tools to accomplish tasks.
+                </div>
+                
+                <div class="sub-component llm-box">
+                    <div class="sub-component-title">🧠 LLM (Language Model)</div>
+                    <div class="sub-component-text">
+                        <strong>Role:</strong> Reasoning engine<br>
+                        • Generates thoughts and plans<br>
+                        • Decides which tool to use<br>
+                        • Interprets observations<br>
+                        • Synthesizes final answers
+                    </div>
+                </div>
+                
+                <div class="sub-component memory-box">
+                    <div class="sub-component-title">💾 Memory/Context</div>
+                    <div class="sub-component-text">
+                        Maintains conversation history, previous thoughts, actions, and observations
+                    </div>
+                </div>
+                
+                <div class="sub-component reasoning-box">
+                    <div class="sub-component-title">⚙️ ReAct Loop Controller</div>
+                    <div class="sub-component-text">
+                        Manages the Thought → Action → Observation cycle until task completion
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tools -->
+            <div class="component tools-component">
+                <div class="component-title">
+                    <span class="component-icon">🔧</span>
+                    Tools
+                </div>
+                <div class="component-description">
+                    External capabilities the agent can invoke to gather information or perform actions.
+                </div>
+                
+                <div class="tool-item">
+                    <div class="tool-name">🔍 Web Search</div>
+                    <div class="tool-desc">Search the internet for information</div>
+                </div>
+                
+                <div class="tool-item">
+                    <div class="tool-name">📊 Database Query</div>
+                    <div class="tool-desc">Retrieve data from databases</div>
+                </div>
+                
+                <div class="tool-item">
+                    <div class="tool-name">🧮 Calculator</div>
+                    <div class="tool-desc">Perform mathematical calculations</div>
+                </div>
+                
+                <div class="tool-item">
+                    <div class="tool-name">🌐 API Calls</div>
+                    <div class="tool-desc">Interact with external services</div>
+                </div>
+                
+                <div class="tool-item">
+                    <div class="tool-name">📧 Email/Messaging</div>
+                    <div class="tool-desc">Send communications</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Component Roles -->
+        <div class="flow-section">
+            <h2 class="section-title">Component Roles & Responsibilities</h2>
+            
+            <div class="roles-grid">
+                <div class="role-card user-role">
+                    <div class="role-title">
+                        <span>👤</span> User
+                    </div>
+                    <ul class="role-responsibilities">
+                        <li>Initiates task with natural language query</li>
+                        <li>Provides clarifications when asked</li>
+                        <li>Receives and validates final output</li>
+                    </ul>
+                </div>
+                
+                <div class="role-card agent-role">
+                    <div class="role-title">
+                        <span>🤖</span> Agent
+                    </div>
+                    <ul class="role-responsibilities">
+                        <li>Orchestrates entire workflow</li>
+                        <li>Maintains conversation context</li>
+                        <li>Manages ReAct loop execution</li>
+                        <li>Bridges LLM and tools</li>
+                        <li>Handles errors and retries</li>
+                    </ul>
+                </div>
+                
+                <div class="role-card llm-role">
+                    <div class="role-title">
+                        <span>🧠</span> LLM
+                    </div>
+                    <ul class="role-responsibilities">
+                        <li>Generates reasoning (thoughts)</li>
+                        <li>Decides which tool/action to use</li>
+                        <li>Creates tool input parameters</li>
+                        <li>Interprets tool outputs</li>
+                        <li>Synthesizes final answers</li>
+                    </ul>
+                </div>
+                
+                <div class="role-card tool-role">
+                    <div class="role-title">
+                        <span>🔧</span> Tools
+                    </div>
+                    <ul class="role-responsibilities">
+                        <li>Execute specific actions</li>
+                        <li>Interact with external systems</li>
+                        <li>Return structured results</li>
+                        <li>Provide real-time/accurate data</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Information Flow -->
+        <div class="flow-section">
+            <h2 class="section-title">Information Flow Diagram</h2>
+            
+            <div class="flow-diagram">
+                <div class="flow-row">
+                    <div class="flow-box user-box">
+                        <div>
+                            <strong>User Query</strong>
+                            <div class="flow-label">"Find Paris hotels under $200"</div>
+                        </div>
+                    </div>
+                    <div class="arrow-horizontal">→</div>
+                    <div class="flow-box agent-box">
+                        <div>
+                            <strong>Agent</strong>
+                            <div class="flow-label">Receives & stores task</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="arrow-vertical">↓</div>
+                
+                <div class="flow-row">
+                    <div class="flow-box agent-box">
+                        <div>
+                            <strong>Agent → LLM</strong>
+                            <div class="flow-label">Sends context & task</div>
+                        </div>
+                    </div>
+                    <div class="arrow-horizontal">→</div>
+                    <div class="flow-box llm-box-flow">
+                        <div>
+                            <strong>LLM Reasoning</strong>
+                            <div class="flow-label">Generates thought & action plan</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="arrow-vertical">↓</div>
+                
+                <div class="flow-row">
+                    <div class="flow-box llm-box-flow">
+                        <div>
+                            <strong>LLM Output</strong>
+                            <div class="flow-label">Thought: "I need to search for hotels"<br>Action: web_search("Paris hotels under $200")</div>
+                        </div>
+                    </div>
+                    <div class="arrow-horizontal">→</div>
+                    <div class="flow-box agent-box">
+                        <div>
+                            <strong>Agent</strong>
+                            <div class="flow-label">Parses LLM response</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="arrow-vertical">↓</div>
+                
+                <div class="flow-row">
+                    <div class="flow-box agent-box">
+                        <div>
+                            <strong>Agent → Tool</strong>
+                            <div class="flow-label">Executes action</div>
+                        </div>
+                    </div>
+                    <div class="arrow-horizontal">→</div>
+                    <div class="flow-box tool-box">
+                        <div>
+                            <strong>Tool Execution</strong>
+                            <div class="flow-label">Web search performs query</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="arrow-vertical">↓</div>
+                
+                <div class="flow-row">
+                    <div class="flow-box tool-box">
+                        <div>
+                            <strong>Tool Result</strong>
+                            <div class="flow-label">Returns hotel listings data</div>
+                        </div>
+                    </div>
+                    <div class="arrow-horizontal">→</div>
+                    <div class="flow-box agent-box">
+                        <div>
+                            <strong>Agent</strong>
+                            <div class="flow-label">Stores observation</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="arrow-vertical">↓</div>
+                
+                <div class="flow-row">
+                    <div class="flow-box agent-box">
+                        <div>
+                            <strong>Agent → LLM</strong>
+                            <div class="flow-label">Sends observation for analysis</div>
+                        </div>
+                    </div>
+                    <div class="arrow-horizontal">→</div>
+                    <div class="flow-box llm-box-flow">
+                        <div>
+                            <strong>LLM Analysis</strong>
+                            <div class="flow-label">Decides: continue or finish?</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="arrow-vertical">↓</div>
+                
+                <div class="flow-row">
+                    <div class="flow-box agent-box">
+                        <div>
+                            <strong>Agent</strong>
+                            <div class="flow-label">Prepares final answer</div>
+                        </div>
+                    </div>
+                    <div class="arrow-horizontal">→</div>
+                    <div class="flow-box user-box">
+                        <div>
+                            <strong>User Response</strong>
+                            <div class="flow-label">Formatted hotel recommendations</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Interaction Sequence -->
+        <div class="flow-section">
+            <h2 class="section-title">Detailed Interaction Sequence</h2>
+            
+            <div class="sequence">
+                <div class="sequence-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-actor">User → Agent</div>
+                        <div class="step-action">Submits task: "Find me hotels in Paris under $200/night with good reviews"</div>
+                    </div>
+                </div>
+                
+                <div class="sequence-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-actor">Agent → LLM</div>
+                        <div class="step-action">Sends task context and prompts LLM to reason about next step</div>
+                    </div>
+                </div>
+                
+                <div class="sequence-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-actor">LLM → Agent</div>
+                        <div class="step-action">Returns: <strong>Thought:</strong> "I need to search for hotels in Paris with price and review filters" <br><strong>Action:</strong> web_search("Paris hotels under $200 good reviews")</div>
+                    </div>
+                </div>
+                
+                <div class="sequence-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div class="step-actor">Agent → Tool</div>
+                        <div class="step-action">Invokes web_search tool with parameters</div>
+                    </div>
+                </div>
+                
+                <div class="sequence-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <div class="step-actor">Tool → Agent</div>
+                        <div class="step-action"><strong>Observation:</strong> Returns search results with hotel names, prices, ratings, and links</div>
+                    </div>
+                </div>
+                
+                <div class="sequence-step">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <div class="step-actor">Agent → LLM</div>
+                        <div class="step-action">Sends observation data and asks LLM to analyze and decide next step</div>
+                    </div>
+                </div>
+                
+                <div class="sequence-step">
+                    <div class="step-number">7</div>
+                    <div class="step-content">
+                        <div class="step-actor">LLM → Agent</div>
+                        <div class="step-action"><strong>Thought:</strong> "I have sufficient data to answer the user's query" <br><strong>Action:</strong> finish(formatted_hotel_list)</div>
+                    </div>
+                </div>
+                
+                <div class="sequence-step">
+                    <div class="step-number">8</div>
+                    <div class="step-content">
+                        <div class="step-actor">Agent → User</div>
+                        <div class="step-action">Delivers formatted response with hotel recommendations, prices, ratings, and booking links</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Key Relationships -->
+        <div class="flow-section">
+            <h2 class="section-title">Key Relationships</h2>
+            
+            <div class="roles-grid">
+                <div class="role-card" style="border-color: #667eea;">
+                    <div class="role-title">🤖 ↔️ 🧠</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">Agent ↔️ LLM</div>
+                    <ul class="role-responsibilities">
+                        <li>Agent sends context to LLM</li>
+                        <li>LLM returns reasoning & decisions</li>
+                        <li>Continuous back-and-forth dialogue</li>
+                        <li>Agent manages prompt engineering</li>
+                    </ul>
+                </div>
+                
+                <div class="role-card" style="border-color: #9f7aea;">
+                    <div class="role-title">🤖 ↔️ 🔧</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">Agent ↔️ Tools</div>
+                    <ul class="role-responsibilities">
+                        <li>Agent executes tool calls</li>
+                        <li>Tools return structured data</li>
+                        <li>Agent handles tool errors</li>
+                        <li>Agent validates tool outputs</li>
+                    </ul>
+                </div>
+                
+                <div class="role-card" style="border-color: #f56565;">
+                    <div class="role-title">🧠 ⚡ 🔧</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">LLM → Tools (via Agent)</div>
+                    <ul class="role-responsibilities">
+                        <li>LLM decides which tool to use</li>
+                        <li>LLM generates tool parameters</li>
+                        <li>Agent acts as executor/bridge</li>
+                        <li>LLM never directly calls tools</li>
+                    </ul>
+                </div>
+                
+                <div class="role-card" style="border-color: #48bb78;">
+                    <div class="role-title">👤 ↔️ 🤖</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">User ↔️ Agent</div>
+                    <ul class="role-responsibilities">
+                        <li>Single interface for user</li>
+                        <li>Agent handles all complexity</li>
+                        <li>User sees only final results</li>
+                        <li>Agent may ask clarifying questions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
