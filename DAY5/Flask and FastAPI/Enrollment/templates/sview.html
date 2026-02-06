@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Candidates Enrolled</title>
+</head>
+<body style = "background : url(https://qualityundergroundsolutions.com/wp-content/uploads/2017/05/vector-grey-abstract-background-for-design_MJmTARLO.jpg) ; background-size: 65%;">
+<h2><center> <mark>Candidates Enrolled</mark></center></h3>
+<center><table border=5 ;>
+
+	<thead>
+		<td>ID</td>
+		<td>NAME</td>
+		<td>Email</td>
+		<td>Address</td>
+		<td>Number</td>
+		<td>CollegeName</td>
+		<td>City</td>
+		<td>State</td>
+	</thead>
+	
+	{% for row in rows %}
+	
+		<tr>
+			<td>{{row["id"]}}</td>
+			<td>{{row["name"]}}</td>
+			<td>{{row["email"]}}</td>
+			<td>{{row["address"]}}</td>
+			<td>{{row["number"]}}</td>
+			<td>{{row["college_name"]}}</td>
+			<td>{{row["city"]}}</td>
+			<td>{{row["state"]}}</td>
+		</tr>
+	{% endfor %}
+</table>
+</center>
+<br><br>
+<a href="/"><p style="color:black;"><marquee width="100" scrollamount="1" scrolldelay="4" loop="100"><I>Home Page</I></marquee></p></a
+
+
+</body>
+<html>
+
+		
